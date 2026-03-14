@@ -12,6 +12,14 @@ type Config struct {
 	Server      struct {
 		Port string `yaml:"port"`
 	} `yaml:"server"`
+	Routes []Route `yaml:"routes"`
+}
+
+type Route struct {
+	Path        string   `yaml:"path"`
+	Target      string   `yaml:"target"`
+	StripPrefix string   `yaml:"strip_prefix"`
+	Middlewares []string `yaml:"middlewares"`
 }
 
 func (c *Config) LoadData(path string) error {

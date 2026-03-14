@@ -5,14 +5,13 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"net/http/httputil"
-	"net/url"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
 	"github.com/ahmed-cmyk/GopherGate/internal/config"
+	"github.com/ahmed-cmyk/GopherGate/internal/proxy"
 )
 
 func main() {
@@ -20,27 +19,23 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	var config config.Config
+	var cfg config.Config
 
-	err := config.LoadData("config.yaml")
+	err := cfg.LoadData("config.yaml")
 	if err != nil {
 		log.Fatalf("Error unmarshaling YAML: %v\n", err)
 		os.Exit(1)
 	}
 
-	remote, err := url.Parse("https://api.chucknorris.io")
-	if err != nil {
-		panic(err)
-	}
+	// Setup Gateway
+	gateway := proxy.New(&cfg)
 
-	proxy := httputil.NewSingleHostReverseProxy(remote)
-
-	port := fmt.Sprintf(":%s", config.Server.Port)
+	port := fmt.Sprintf(":%s", cfg.Server.Port)
 	srv := &http.Server{
 		Addr:         port,
 		ReadTimeout:  15 * time.Second,
 		WriteTimeout: 15 * time.Second,
-		Handler:      proxy,
+		Handler:      gateway,
 	}
 
 	// Run server inside a goroutine so that it doesn't block
@@ -51,8 +46,8 @@ func main() {
 		}
 	}()
 
-	log.Printf("Starting service: %s\n", config.ServiceName)
-	log.Printf("Listening on port %s\n", config.Server.Port)
+	log.Printf("Starting service: %s\n", cfg.ServiceName)
+	log.Printf("Listening on port %s\n", cfg.Server.Port)
 
 	// Wait for the interrupt signal
 	<-ctx.Done()
