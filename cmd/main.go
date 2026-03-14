@@ -5,26 +5,19 @@ import (
 	"net/http"
 	"os"
 
-	"gopkg.in/yaml.v3"
+	"github.com/ahmed-cmyk/GopherGate/internal/config"
 )
 
-type Config struct {
-	ServiceName string `yaml:"service_name"`
-	Server      struct {
-		Host string `yaml:"host"`
-		Port string `yaml:"port"`
-	} `yaml:"server"`
-}
-
 func main() {
-	data, err := os.ReadFile("config.yaml")
+	var config config.Config
+
+	data, err := config.CheckConfig("config.yaml")
 	if err != nil {
 		fmt.Printf("Error reading config: %v\n", err)
 		os.Exit(1)
 	}
 
-	var config Config
-	err = yaml.Unmarshal(data, &config)
+	err = config.LoadData(data)
 	if err != nil {
 		fmt.Printf("Error unmarshaling YAML: %v\n", err)
 		os.Exit(1)
@@ -32,7 +25,7 @@ func main() {
 
 	port := fmt.Sprintf(":%s", config.Server.Port)
 
-	fmt.Printf("Running on %s port %s\n", config.Server.Host, config.Server.Port)
+	fmt.Printf("Running on port %s\n", config.Server.Port)
 
 	err = http.ListenAndServe(port, nil)
 	if err != nil {

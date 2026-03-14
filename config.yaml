@@ -1,4 +1,10 @@
-service_name: "api_gateway"
 server:
-  host: localhost
-  port: 9090
+  port: 8080
+
+routes:
+  - path: /api/users
+    target: "http://user-service:8001"
+    strip-prefix: true
+    middlewares:
+      - rate_limit
+      - auth

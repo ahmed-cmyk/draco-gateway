@@ -1,4 +1,4 @@
-module github.com/ahmed-cmyk/draco-gateway
+module github.com/ahmed-cmyk/GopherGate
 
 go 1.24.5
 
