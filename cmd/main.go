@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/ahmed-cmyk/GopherGate/internal/config"
-	"github.com/ahmed-cmyk/GopherGate/internal/middleware"
 	"github.com/ahmed-cmyk/GopherGate/internal/proxy"
 )
 
@@ -36,7 +35,7 @@ func main() {
 		Addr:         port,
 		ReadTimeout:  15 * time.Second,
 		WriteTimeout: 15 * time.Second,
-		Handler:      middleware.Logging(gateway),
+		Handler:      gateway,
 	}
 
 	// Run server inside a goroutine so that it doesn't block

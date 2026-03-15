@@ -8,5 +8,5 @@ routes:
     target: "http://user-service:8001"
     strip-prefix: true
     middlewares:
+      - logging
       - rate_limit
-      - auth

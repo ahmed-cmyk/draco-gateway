@@ -8,15 +8,16 @@ import (
 	"strings"
 
 	"github.com/ahmed-cmyk/GopherGate/internal/config"
+	"github.com/ahmed-cmyk/GopherGate/internal/middleware"
 )
 
 type Gateway struct {
-	handlers map[string]*httputil.ReverseProxy
+	handlers map[string]http.Handler
 }
 
 func New(cfg *config.Config) *Gateway {
 	gw := &Gateway{
-		handlers: make(map[string]*httputil.ReverseProxy),
+		handlers: make(map[string]http.Handler),
 	}
 
 	for _, route := range cfg.Routes {
@@ -44,14 +45,16 @@ func New(cfg *config.Config) *Gateway {
 			}
 		}
 
-		gw.handlers[route.Path] = proxy
+		finalHandler := ApplyMiddlewares(proxy, route.Middlewares)
+
+		gw.handlers[route.Path] = finalHandler
 	}
 	return gw
 }
 
 func (gw *Gateway) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	incomingPath := r.URL.Path
-	var matchedHandler *httputil.ReverseProxy
+	var matchedHandler http.Handler
 
 	for path, proxy := range gw.handlers {
 		if strings.HasPrefix(incomingPath, path) {
@@ -66,4 +69,19 @@ func (gw *Gateway) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	matchedHandler.ServeHTTP(w, r)
+}
+
+func ApplyMiddlewares(target http.Handler, names []string) http.Handler {
+	current := target
+
+	// Wrap from right to left so the first item in the YAML is the outermost layer
+	for _, name := range names {
+		if mwFunc, ok := middleware.Registry[name]; ok {
+			current = mwFunc(current)
+		} else {
+			log.Printf("Warning: Middleware %s not found", name)
+		}
+	}
+
+	return current
 }
