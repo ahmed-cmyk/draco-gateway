@@ -50,7 +50,7 @@ I am building this incrementally. Here is the current status of the gateway:
 ### Installation
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/gophergate.git
+git clone https://github.com/ahmed-cmyk/gophergate.git
 cd gophergate
 go mod download
 
