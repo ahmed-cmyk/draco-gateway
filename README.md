@@ -22,7 +22,7 @@ I am building this incrementally. Here is the current status of the gateway:
 
 * [x] **Reverse Proxy:** Forwarding traffic to backend targets.
 * [x] **Dynamic Path Matching:** Routing based on URL prefixes (e.g., `/users/*`).
-* [ ] **Method Filtering:** Restricting routes to specific HTTP verbs (GET, POST, etc.).
+* [x] **Method Filtering:** Restricting routes to specific HTTP verbs (GET, POST, etc.).
 * [ ] **Header Transformation:** Adding/Removing headers before forwarding.
 
 ### Phase 2: Traffic Control
