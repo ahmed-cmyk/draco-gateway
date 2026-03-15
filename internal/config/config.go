@@ -8,7 +8,7 @@ import (
 )
 
 type Config struct {
-	ServiceName string `yaml:"service_name"`
+	ServiceName string `yaml:"service-name"`
 	Server      struct {
 		Port string `yaml:"port"`
 	} `yaml:"server"`
@@ -18,7 +18,7 @@ type Config struct {
 type Route struct {
 	Path        string   `yaml:"path"`
 	Target      string   `yaml:"target"`
-	StripPrefix string   `yaml:"strip_prefix"`
+	StripPrefix bool     `yaml:"strip-prefix"`
 	Middlewares []string `yaml:"middlewares"`
 }
 

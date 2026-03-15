@@ -1,4 +1,4 @@
-service_name: "API Gateway"
+service-name: "API Gateway"
 
 server:
   port: 8080
