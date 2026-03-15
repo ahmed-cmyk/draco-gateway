@@ -27,6 +27,23 @@ func New(cfg *config.Config) *Gateway {
 
 		proxy := httputil.NewSingleHostReverseProxy(targetUrl)
 
+		originalDirector := proxy.Director
+		proxy.Director = func(req *http.Request) {
+			originalDirector(req) // Sets host and scheme
+
+			if route.StripPrefix {
+				// This logic is now "locked in" for this specific proxy
+				if after, ok := strings.CutPrefix(req.URL.Path, route.Path); ok {
+					// Force the path to be absolute
+					if after == "" || after[0] != '/' {
+						after = "/" + after
+					}
+
+					req.URL.Path = after
+				}
+			}
+		}
+
 		gw.handlers[route.Path] = proxy
 	}
 	return gw
