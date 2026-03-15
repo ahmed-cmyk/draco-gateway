@@ -38,6 +38,7 @@ func (l *IPRateLimiter) fetchLimiter(ip string) *rate.Limiter {
 }
 
 func getIP(r *http.Request) string {
+	// Try to grab client IP address from `X-Forwarded-For` header
 	if headerValue := r.Header.Get("X-Forwarded-For"); headerValue != "" {
 		// The header can contain multiple IPs
 		ips := strings.Split(headerValue, ",")
@@ -47,6 +48,15 @@ func getIP(r *http.Request) string {
 		}
 		if len(ips) > 0 && ips[0] != "" {
 			return ips[0]
+		}
+	}
+
+	// Fallback to RemoteAddr if other sources does not contain header
+	ipPort := r.RemoteAddr
+	if ipPort != "" {
+		parts := strings.Split(ipPort, ":")
+		if len(parts) > 0 && parts[0] != "" {
+			return parts[0]
 		}
 	}
 
