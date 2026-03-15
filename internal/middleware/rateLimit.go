@@ -3,6 +3,7 @@ package middleware
 import (
 	"log"
 	"net/http"
+	"strings"
 	"sync"
 
 	"golang.org/x/time/rate"
@@ -37,8 +38,19 @@ func (l *IPRateLimiter) fetchLimiter(ip string) *rate.Limiter {
 }
 
 func getIP(r *http.Request) string {
-	ip := r.Header.Get("X-Forwarded-For")
-	return ip
+	if headerValue := r.Header.Get("X-Forwarded-For"); headerValue != "" {
+		// The header can contain multiple IPs
+		ips := strings.Split(headerValue, ",")
+		// The first IP in 'X-Forwarded-For' is usually the original client's address
+		for i, ip := range ips {
+			ips[i] = strings.TrimSpace(ip)
+		}
+		if len(ips) > 0 && ips[0] != "" {
+			return ips[0]
+		}
+	}
+
+	return ""
 }
 
 func RateLimit(manager *IPRateLimiter) MiddlewareFunc {
