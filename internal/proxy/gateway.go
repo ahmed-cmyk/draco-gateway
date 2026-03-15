@@ -74,12 +74,12 @@ func (gw *Gateway) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !found {
-		http.Error(w, "Not Found", 404)
+		http.Error(w, "Not Found", http.StatusNotFound)
 		return
 	}
 
 	if len(matched.methods) > 0 && !slices.Contains(matched.methods, r.Method) {
-		http.Error(w, "Method Not Supported", 405)
+		http.Error(w, "Method Not Supported", http.StatusMethodNotAllowed)
 		return
 	}
 
