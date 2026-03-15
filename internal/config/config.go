@@ -23,7 +23,7 @@ type Route struct {
 }
 
 func (c *Config) LoadData(path string) error {
-	data, err := os.ReadFile("config.yaml")
+	data, err := os.ReadFile(path)
 	if err != nil {
 		log.Fatalf("Error loading config: %v", err)
 	}

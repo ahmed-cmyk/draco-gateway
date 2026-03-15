@@ -26,7 +26,6 @@ func main() {
 	err := cfg.LoadData("config.yaml")
 	if err != nil {
 		log.Fatalf("Error unmarshaling YAML: %v\n", err)
-		os.Exit(1)
 	}
 
 	// Setup Gateway Instance
