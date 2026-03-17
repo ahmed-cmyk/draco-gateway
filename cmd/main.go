@@ -28,8 +28,12 @@ func main() {
 		log.Fatalf("Error unmarshaling YAML: %v\n", err)
 	}
 
+	// Initialize Backend routes
+	routeMap := proxy.InitBackendRoutes(cfg.Routes)
+	routeMap.ScheduleRouteCheckup(ctx)
+
 	// Setup Gateway Instance
-	gateway := setupGateway(&cfg)
+	gateway := setupGateway(&cfg, routeMap)
 
 	port := fmt.Sprintf(":%s", cfg.Server.Port)
 	srv := &http.Server{
@@ -53,11 +57,13 @@ func main() {
 	// Wait for the interrupt signal
 	<-ctx.Done()
 
+	log.Println("Route ticker stopped")
+
 	log.Println("Shutting down server gracefully...")
 	log.Println("Server gracefully stopped")
 }
 
-func setupGateway(cfg *config.Config) *proxy.Gateway {
+func setupGateway(cfg *config.Config, routeMap *proxy.Routes) *proxy.Gateway {
 	// Initialize the stateful logic
 	limiterManager := middleware.NewLimiter(rate.Every(time.Minute), 50)
 
@@ -67,5 +73,5 @@ func setupGateway(cfg *config.Config) *proxy.Gateway {
 	// Register it dynamically
 	middleware.Registry["rate_limit"] = rateLimitMW
 
-	return proxy.New(cfg)
+	return proxy.New(cfg, routeMap)
 }

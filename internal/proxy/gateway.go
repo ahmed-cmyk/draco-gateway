@@ -23,7 +23,7 @@ type Gateway struct {
 	routes map[string]routeEntry
 }
 
-func New(cfg *config.Config) *Gateway {
+func New(cfg *config.Config, routeMap *Routes) *Gateway {
 	gw := &Gateway{
 		routes: make(map[string]routeEntry),
 	}
@@ -43,8 +43,14 @@ func New(cfg *config.Config) *Gateway {
 
 		finalHandler := applyMiddlewares(proxy, route.Middlewares)
 
+		var servers []string
+
+		for _, server := range (*routeMap)[route.Path] {
+			servers = append(servers, server.Url)
+		}
+
 		gw.routes[route.Path] = routeEntry{
-			balancer: middleware.ResolveBalancer(route.Path, route.Balancer, route.Targets),
+			balancer: middleware.ResolveBalancer(route.Path, route.Balancer, servers),
 			handler:  finalHandler,
 			methods:  route.Methods,
 		}
