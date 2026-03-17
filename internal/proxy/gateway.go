@@ -37,6 +37,8 @@ func New(cfg *config.Config) *Gateway {
 		proxy := httputil.NewSingleHostReverseProxy(targetUrl)
 
 		originalDirector := proxy.Director
+		// Create a new copy of "route" scoped to this loop iteration
+		route := route
 		proxy.Director = ApplyDirector(&route, originalDirector)
 
 		finalHandler := applyMiddlewares(proxy, route.Middlewares)
