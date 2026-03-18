@@ -2,12 +2,12 @@ package proxy
 
 import (
 	"context"
-	"log"
 	"net/http"
 	"net/url"
 	"time"
 
 	"github.com/ahmed-cmyk/GopherGate/internal/config"
+	"github.com/charmbracelet/log"
 )
 
 type Server struct {
@@ -72,7 +72,7 @@ func (rc *Routes) ScheduleRouteCheckup(ctx context.Context) {
 					backend := backends[backendIndex]
 					active := pingHealthEndpoint(backend.Url)
 					if !active {
-						log.Printf("Backend %s has been marked as inactive", backend.Url)
+						log.Infof("Backend %s has been marked as inactive", backend.Url)
 					}
 
 					routes[currentPath][backendIndex].Active = active
@@ -90,7 +90,7 @@ func (rc *Routes) ScheduleRouteCheckup(ctx context.Context) {
 					pathIndex = 0
 				}
 
-				log.Printf("Checked %s: %v", currentPath, t)
+				log.Infof("Checked %s: %v", currentPath, t)
 			}
 		}
 	}()
@@ -99,18 +99,18 @@ func (rc *Routes) ScheduleRouteCheckup(ctx context.Context) {
 func pingHealthEndpoint(route string) bool {
 	parsedUrl, err := url.JoinPath(route, "health")
 	if err != nil {
-		log.Printf("Failed to parse health check URL for route: %s", route)
+		log.Errorf("Failed to parse health check URL for route: %s", route)
 		return false
 	}
 
 	resp, err := http.Get(parsedUrl)
 	if err != nil {
-		log.Printf("Failed to call health route for route %s", route)
+		log.Errorf("Failed to call health route for route %s", route)
 		return false
 	}
 
 	if resp.Status != "200 OK" {
-		log.Printf("Health check for route %s returned unsuccessful", route)
+		log.Errorf("Health check for route %s returned unsuccessful", route)
 		return false
 	}
 

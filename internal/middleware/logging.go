@@ -1,9 +1,10 @@
 package middleware
 
 import (
-	"log"
 	"net/http"
 	"time"
+
+	"github.com/charmbracelet/log"
 )
 
 type responseWriter struct {
@@ -28,6 +29,6 @@ func Logging(next http.Handler) http.Handler {
 
 		elapsed := time.Since(start)
 
-		log.Printf("[%d] %s %s (took %d ms)", rw.statusCode, r.Method, r.URL.Path, elapsed.Milliseconds())
+		log.Debugf("[%d] %s %s (took %d ms)", rw.statusCode, r.Method, r.URL.Path, elapsed.Milliseconds())
 	})
 }

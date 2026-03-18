@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -13,6 +12,7 @@ import (
 	"github.com/ahmed-cmyk/GopherGate/internal/config"
 	"github.com/ahmed-cmyk/GopherGate/internal/middleware"
 	"github.com/ahmed-cmyk/GopherGate/internal/proxy"
+	"github.com/charmbracelet/log"
 	"golang.org/x/time/rate"
 )
 
@@ -25,7 +25,7 @@ func main() {
 
 	err := cfg.LoadData("config.yaml")
 	if err != nil {
-		log.Fatalf("Error unmarshaling YAML: %v\n", err)
+		log.Errorf("Error unmarshaling YAML: %v\n", err)
 	}
 
 	// Initialize Backend routes
@@ -47,20 +47,20 @@ func main() {
 	go func() {
 		err := srv.ListenAndServe()
 		if err != nil {
-			log.Fatalf("Failed to start server: %v\n", err)
+			log.Errorf("Failed to start server: %v\n", err)
 		}
 	}()
 
-	log.Printf("Starting service: %s\n", cfg.ServiceName)
-	log.Printf("Listening on port %s\n", cfg.Server.Port)
+	log.Infof("Starting service: %s\n", cfg.ServiceName)
+	log.Infof("Listening on port %s\n", cfg.Server.Port)
 
 	// Wait for the interrupt signal
 	<-ctx.Done()
 
-	log.Println("Route ticker stopped")
+	log.Infof("Route ticker stopped")
 
-	log.Println("Shutting down server gracefully...")
-	log.Println("Server gracefully stopped")
+	log.Infof("Shutting down server gracefully...")
+	log.Infof("Server gracefully stopped")
 }
 
 func setupGateway(cfg *config.Config, routeMap *proxy.Routes) *proxy.Gateway {

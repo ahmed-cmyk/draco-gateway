@@ -1,11 +1,11 @@
 package middleware
 
 import (
-	"log"
 	"net/http"
 	"strings"
 	"sync"
 
+	"github.com/charmbracelet/log"
 	"golang.org/x/time/rate"
 )
 
@@ -69,7 +69,7 @@ func RateLimit(manager *IPRateLimiter) MiddlewareFunc {
 			// Get IP address of user making request
 			ip := getIP(r)
 			if ip == "" {
-				log.Println("Could not retrieve IP address from header")
+				log.Errorf("Could not retrieve IP address from header")
 				return
 			}
 

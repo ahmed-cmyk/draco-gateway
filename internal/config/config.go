@@ -1,9 +1,9 @@
 package config
 
 import (
-	"log"
 	"os"
 
+	"github.com/charmbracelet/log"
 	"gopkg.in/yaml.v3"
 )
 
@@ -33,7 +33,7 @@ type Route struct {
 func (c *Config) LoadData(path string) error {
 	data, err := os.ReadFile(path)
 	if err != nil {
-		log.Fatalf("Error loading config: %v", err)
+		log.Errorf("Error loading config: %v", err)
 	}
 
 	return yaml.Unmarshal(data, c)

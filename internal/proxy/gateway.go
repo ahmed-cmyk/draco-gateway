@@ -1,7 +1,6 @@
 package proxy
 
 import (
-	"log"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
@@ -11,6 +10,7 @@ import (
 	"github.com/ahmed-cmyk/GopherGate/internal/config"
 	loadbalancer "github.com/ahmed-cmyk/GopherGate/internal/loadBalancer"
 	"github.com/ahmed-cmyk/GopherGate/internal/middleware"
+	"github.com/charmbracelet/log"
 )
 
 type routeEntry struct {
@@ -31,7 +31,7 @@ func New(cfg *config.Config, routeMap *Routes) *Gateway {
 	for _, route := range cfg.Routes {
 		targetUrl, err := url.Parse(route.Targets[0])
 		if err != nil {
-			log.Printf("Invalid target URL %s: %v", route.Targets[0], err)
+			log.Errorf("Invalid target URL %s: %v", route.Targets[0], err)
 		}
 
 		proxy := httputil.NewSingleHostReverseProxy(targetUrl)
@@ -49,8 +49,14 @@ func New(cfg *config.Config, routeMap *Routes) *Gateway {
 			servers = append(servers, server.Url)
 		}
 
+		balancerCfg := loadbalancer.BalancerConfig{
+			Path:     route.Path,
+			Balancer: route.Balancer,
+			Servers:  route.Targets,
+		}
+
 		gw.routes[route.Path] = routeEntry{
-			balancer: middleware.ResolveBalancer(route.Path, route.Balancer, servers),
+			balancer: loadbalancer.ResolveBalancer(balancerCfg),
 			handler:  finalHandler,
 			methods:  route.Methods,
 		}
@@ -93,7 +99,7 @@ func (gw *Gateway) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	r.URL.Scheme = "http"
 	r.Host = string(host)
 
-	log.Printf("Routing %s request to %s", r.URL.Path, host)
+	log.Infof("Routing %s request to %s", r.URL.Path, host)
 
 	matched.handler.ServeHTTP(w, r)
 }
@@ -105,7 +111,7 @@ func applyMiddlewares(target http.Handler, names []string) http.Handler {
 		if mwFunc, ok := middleware.Registry[name]; ok {
 			current = mwFunc(current)
 		} else {
-			log.Printf("Warning: Middleware %s not found", name)
+			log.Errorf("Warning: Middleware %s not found", name)
 		}
 	}
 
