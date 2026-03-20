@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/ahmed-cmyk/GopherGate/internal/config"
+	config "github.com/ahmed-cmyk/GopherGate/internal"
 )
 
 func ApplyDirector(route *config.Route, originalDirector func(*http.Request)) func(*http.Request) {

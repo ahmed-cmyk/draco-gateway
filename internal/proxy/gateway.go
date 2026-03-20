@@ -7,7 +7,7 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/ahmed-cmyk/GopherGate/internal/config"
+	config "github.com/ahmed-cmyk/GopherGate/internal"
 	loadbalancer "github.com/ahmed-cmyk/GopherGate/internal/loadBalancer"
 	"github.com/ahmed-cmyk/GopherGate/internal/middleware"
 	"github.com/charmbracelet/log"
@@ -23,7 +23,7 @@ type Gateway struct {
 	routes map[string]routeEntry
 }
 
-func New(cfg *config.Config, routeMap *Routes) *Gateway {
+func NewGateway(cfg *config.Config, routeMap *Routes) *Gateway {
 	gw := &Gateway{
 		routes: make(map[string]routeEntry),
 	}
@@ -45,8 +45,8 @@ func New(cfg *config.Config, routeMap *Routes) *Gateway {
 
 		var servers []string
 
-		for _, server := range (*routeMap)[route.Path] {
-			servers = append(servers, server.Url)
+		for _, server := range routeMap.route[route.Path] {
+			servers = append(servers, server.URL)
 		}
 
 		balancerCfg := loadbalancer.BalancerConfig{

@@ -3,13 +3,13 @@ package main
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
-	"github.com/ahmed-cmyk/GopherGate/internal/config"
+	config "github.com/ahmed-cmyk/GopherGate/internal"
+	"github.com/ahmed-cmyk/GopherGate/internal/health"
 	"github.com/ahmed-cmyk/GopherGate/internal/middleware"
 	"github.com/ahmed-cmyk/GopherGate/internal/proxy"
 	"github.com/charmbracelet/log"
@@ -28,28 +28,18 @@ func main() {
 		log.Errorf("Error unmarshaling YAML: %v\n", err)
 	}
 
-	// Initialize Backend routes
-	routeMap := proxy.InitBackendRoutes(cfg.Routes)
-	routeMap.ScheduleRouteCheckup(ctx)
+	routes := proxy.SetRoutes(&cfg.Routes)
 
 	// Setup Gateway Instance
-	gateway := setupGateway(&cfg, routeMap)
-
+	gateway := setupGateway(&cfg, routes)
 	port := fmt.Sprintf(":%s", cfg.Server.Port)
-	srv := &http.Server{
-		Addr:         port,
-		ReadTimeout:  15 * time.Second,
-		WriteTimeout: 15 * time.Second,
-		Handler:      gateway,
-	}
 
-	// Run server inside a goroutine so that it doesn't block
-	go func() {
-		err := srv.ListenAndServe()
-		if err != nil {
-			log.Errorf("Failed to start server: %v\n", err)
-		}
-	}()
+	go proxy.StartServer(port, gateway)
+
+	// Start the health checker
+	duration := time.Duration(5) * time.Second
+	healthChecker := health.NewHealthChecker(routes, &duration)
+	go healthChecker.StartHealthChecker(ctx)
 
 	log.Infof("Starting service: %s\n", cfg.ServiceName)
 	log.Infof("Listening on port %s\n", cfg.Server.Port)
@@ -73,5 +63,5 @@ func setupGateway(cfg *config.Config, routeMap *proxy.Routes) *proxy.Gateway {
 	// Register it dynamically
 	middleware.Registry["rate_limit"] = rateLimitMW
 
-	return proxy.New(cfg, routeMap)
+	return proxy.NewGateway(cfg, routeMap)
 }
