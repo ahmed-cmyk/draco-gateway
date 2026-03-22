@@ -28,7 +28,12 @@ func main() {
 		log.Errorf("Error unmarshaling YAML: %v\n", err)
 	}
 
-	routes := proxy.SetRoutes(&cfg.Routes)
+	// Set log level to debug so that we can see debug logs
+	log.SetLevel(log.DebugLevel)
+
+	log.Debug("Starting routes setup")
+	routes := proxy.InitRoutes(&cfg.Routes)
+	log.Debug("Completed routes setup")
 
 	// Setup Gateway Instance
 	gateway := setupGateway(&cfg, routes)
@@ -37,8 +42,11 @@ func main() {
 	go proxy.StartServer(port, gateway)
 
 	// Start the health checker
-	duration := time.Duration(5) * time.Second
-	healthChecker := health.NewHealthChecker(routes, &duration)
+	duration := time.Duration(5 * time.Second)
+	timeout := time.Duration(30 * time.Second)
+
+	healthChecker := health.NewHealthChecker(routes, duration, timeout)
+	log.Debug("Starting HealthChecker")
 	go healthChecker.StartHealthChecker(ctx)
 
 	log.Infof("Starting service: %s\n", cfg.ServiceName)

@@ -4,33 +4,41 @@ import (
 	"context"
 	"time"
 
-	"github.com/ahmed-cmyk/GopherGate/internal/proxy"
 	"github.com/charmbracelet/log"
 )
 
-type HealthChecker struct {
-	routes   *proxy.Routes
-	interval *time.Duration
-}
+func NewHealthChecker(routes RouteStore, interval time.Duration, timeout time.Duration) *HealthChecker {
+	pinger := NewPinger(timeout)
 
-func NewHealthChecker(routes *proxy.Routes, interval *time.Duration) *HealthChecker {
 	return &HealthChecker{
 		routes:   routes,
 		interval: interval,
+		pinger:   pinger,
 	}
 }
 
 func (hc *HealthChecker) StartHealthChecker(ctx context.Context) {
-	healthTicker := time.NewTicker(*hc.interval)
+	healthTicker := time.NewTicker(hc.interval)
 	defer healthTicker.Stop()
 
 	for {
 		select {
 		case <-healthTicker.C:
-			log.Debug("Checking health: ", time.Now())
+			paths := hc.routes.GetPaths()
+
 			// TODO: Check health of all servers
+			for _, path := range paths {
+				servers := hc.routes.GetTargets(path)
+				for _, server := range servers {
+					// Launch each ping in its own goroutine
+					go func(s Target) {
+						log.Debugf("Pinging: %s", s.GetURL())
+						hc.pinger.Ping(ctx, s)
+					}(server)
+				}
+			}
 		case <-ctx.Done():
-			log.Debug("Health checker stopped")
+			log.Info("Health checker stopped")
 			return
 		}
 	}
