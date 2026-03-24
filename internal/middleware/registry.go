@@ -18,7 +18,8 @@ type Registry struct {
 func NewRegistry() *Registry {
 	return &Registry{
 		funcs: map[string]MiddlewareFunc{
-			"logging": Logging,
+			"logging":        Logging,
+			"jwt_validation": JWTValidation,
 		},
 	}
 }

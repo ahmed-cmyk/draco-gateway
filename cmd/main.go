@@ -13,6 +13,7 @@ import (
 	"github.com/ahmed-cmyk/GopherGate/internal/middleware"
 	"github.com/ahmed-cmyk/GopherGate/internal/proxy"
 	"github.com/charmbracelet/log"
+	"github.com/joho/godotenv"
 )
 
 func main() {
@@ -20,10 +21,17 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
+	// Load the .env file
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatalf("Failed to load .env file")
+		return
+	}
+
 	var cfg config.Config
 
 	// Load configuration data from "config.yaml" and throw an error if it fails
-	err := cfg.LoadData("config.yaml")
+	err = cfg.LoadData("config.yaml")
 	if err != nil {
 		log.Errorf("Error unmarshaling YAML: %v\n", err)
 	}
@@ -58,6 +66,8 @@ func main() {
 	log.Debug("Starting HealthChecker")
 	go healthChecker.StartHealthChecker(ctx)
 	log.Debug("Started HealthChecker")
+
+	middleware.InitKey(os.Getenv("JWT_KEY"))
 
 	go proxy.StartServer(port, gateway)
 

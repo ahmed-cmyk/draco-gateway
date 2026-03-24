@@ -21,5 +21,6 @@ routes:
     strip-prefix: true
     balancer: round_robin
     middlewares:
+      - jwt_validation
       - rate_limit
       - logging
