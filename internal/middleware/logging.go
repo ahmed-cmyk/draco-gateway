@@ -11,11 +11,11 @@ var Log *zap.Logger
 
 type responseWriter struct {
 	http.ResponseWriter
-	statusCode int
+	StatusCode int
 }
 
 func (rw *responseWriter) WriteHeader(code int) {
-	rw.statusCode = code
+	rw.StatusCode = code
 	rw.ResponseWriter.WriteHeader(code)
 }
 
@@ -43,6 +43,7 @@ func Logging(next http.Handler) http.Handler {
 		Log.Info("request completed",
 			zap.String("method", r.Method),
 			zap.String("path", r.URL.Path),
+			zap.Int("status", rw.StatusCode),
 			zap.Duration("latency", time.Since(start)),
 			zap.String("ip", r.RemoteAddr),
 			zap.String("user_agent", r.UserAgent()),
